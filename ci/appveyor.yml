@@ -1,0 +1,16 @@
+version: '{build}'
+image: Visual Studio 2017
+
+branches:
+  only: 
+    - master
+
+skip_tags: true
+
+build_script:
+  - cmd: build
+
+test: off
+
+artifacts:
+  - path: .artifacts/**/*.nupkg
