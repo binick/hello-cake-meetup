@@ -1,7 +1,4 @@
-name: hello-cake-meetup
-
-pool:
-  vmImage: vs2017-win2016
+name: hello-cake
 
 variables:
   artifactsRootDir: $(System.DefaultWorkingDirectory)/.artifacts
@@ -10,48 +7,24 @@ trigger:
   branches:
     include:
       - master
+      - preview/*
+      - stable/*
 
-steps:
-  # Clean
-  - checkout: self
-    clean: all
+jobs:
 
-  # Build, test and generate artifact output
-  - script: build
-    displayName: 'Build'
-    continueOnError: 'false'
+  - job: build_windows_agent
+    displayName: Windows Agent
+    pool:
+      vmImage: vs2017-win2016
 
-  # Publish test results
-  - task: PublishTestResults@2
-    displayName: 'Publish Test Results'
-    inputs:
-      testRunTitle: 'Units Tests'
-      testResultsFiles: $(artifactsRootDir)/**/test-results/**/*.trx
-      searchFolder: $(artifactsRootDir)
-      testResultsFormat: VSTest
-      mergeTestResults: true
+    steps:
+      - template: azure-devops.template.yml
 
-  # Publish code coverage results
-  - task: PublishCodeCoverageResults@1
-    displayName: 'Publish Coverage Results'
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: $(artifactsRootDir)/**/code-coverage/results.*.xml
-      reportDirectory: $(artifactsRootDir)/**/code-coverage/results
-      additionalCodeCoverageFiles: $(artifactsRootDir)/**/code-coverage/results/*
+  - job: build_ubuntu_agent
+    displayName: Ubuntu Agent
+    pool:
+      vmImage: ubuntu-16.04
 
-  # Copy generated artifact outputs
-  - task: CopyFiles@2
-    displayName: 'Copy Files to Artifact Staging'
-    inputs:
-      SourceFolder: $(artifactsRootDir)
-      Contents: '**\*.nupkg'
-      TargetFolder: $(Build.ArtifactStagingDirectory)
-
-  # Publish artifacts
-  - task: PublishPipelineArtifact@0
-    displayName: 'Publish Build Artifact'
-    inputs:
-      artifactName: 'drop'
-      targetPath: $(Build.ArtifactStagingDirectory)
+    steps:
+      - template: azure-devops.template.yml
 

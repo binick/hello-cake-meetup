@@ -15,89 +15,192 @@
 #tool "nuget:?package=xunit.runner.console&version=2.4.1"
 
 /*
+ * Load other scripts.
+ */
+#load "./build/parameters.cake"
+#load "./build/utils.cake"
+
+/*
  * Variables
  */
 bool publishingError = false;
-DirectoryPath artifactDir = (DirectoryPath)Directory("./.artifacts");
+
+/*
+ * Setup
+ */
+Setup<BuildParameters>(context =>
+{
+    var parameters = BuildParameters.GetParameters(Context);
+    var gitVersion = GetVersion(parameters);
+    parameters.Setup(context, gitVersion, 1);
+
+    if (parameters.IsMainBranch && (context.Log.Verbosity != Verbosity.Diagnostic)) {
+        Information("Increasing verbosity to diagnostic.");
+        context.Log.Verbosity = Verbosity.Diagnostic;
+    }
+
+    Information("Building of Hello Cake ({0}) with dotnet version {1}", parameters.Configuration, GetDotnetVersion());
+
+    Information("Build version : Version {0}, SemVersion {1}, NuGetVersion: {2}",
+        parameters.Version.Version, parameters.Version.SemVersion, parameters.Version.NuGetVersion);
+
+    Information("Repository info : IsMainRepo {0}, IsMainBranch {1}, IsTagged: {2}, IsPullRequest: {3}",
+        parameters.IsMainRepo, parameters.IsMainBranch, parameters.IsTagged, parameters.IsPullRequest);
+
+    return parameters;
+});
+
+/*
+ * Teardown
+ */
+Teardown<BuildParameters>((context, parameters) =>
+{
+    if(context.Successful)
+    {
+        Information("Finished running tasks. Thanks for your patience :D");
+    }
+    else
+    {
+        Error("Something wrong! :|");
+        Error(context.ThrownException.Message);
+    }
+});
 
 /*
  * Tasks
  */
 Task("Clean")   
-    .Does(() => 
+    .Does<BuildParameters>((parameters) => 
     {
-        CleanDirectory(artifactDir.FullPath);
+        CleanDirectories(parameters.Paths.Directories.ToClean);
 
-        CleanDirectories($"./**/bin/{configuration}");
+        CleanDirectories($"./**/bin/{parameters.Configuration}");
         CleanDirectories("./**/obj");
     });
 
-Task("Restore")
-    .IsDependentOn("Clean")
-    .Does(() => 
-    {
-        foreach (var project in GetFiles("./**/*.csproj"))
-        {
-            DotNetCoreRestore(project.FullPath);      
-        }
-    });
-
 Task("Build")
-    .IsDependentOn("Restore")
-    .Does(() =>
+    .IsDependentOn("Clean")
+    .Does<BuildParameters>((parameters) =>
     {
-        DotNetCoreBuildSettings settings = new DotNetCoreBuildSettings
-        {
-            NoRestore = true,
-            Configuration = configuration
-        };
-
         foreach (var project in GetFiles("./src/**/*.csproj"))
         {
-            DotNetCoreBuild(project.FullPath, settings);     
+            Build(project, parameters.Configuration, parameters.MSBuildSettings);        
         }
     });
 
 Task("Test")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.EnabledUnitTests, "Unit tests were disabled.")
     .IsDependentOn("Build")
-    .Does(() => 
-    {    
-        DotNetCoreTestSettings settings = new DotNetCoreTestSettings
+    .OnError<BuildParameters>((exception, parameters) => {
+        parameters.ProcessVariables.Add("IsTestsFailed", true);
+    })
+    .Does<BuildParameters>((parameters) => 
+    {
+        var settings = new DotNetCoreTestSettings 
         {
-            Configuration = configuration
+            Configuration = parameters.Configuration,
+            NoBuild = false
         };
 
-        foreach (var project in GetFiles("./test/**/*.csproj"))
+        var timestamp = $"{DateTime.UtcNow:dd-MM-yyyy-HH-mm-ss-FFF}";
+
+        var coverletSettings = new CoverletSettings 
+        {
+            CollectCoverage = true,
+            CoverletOutputDirectory = parameters.Paths.Directories.TestCoverageOutput,
+            CoverletOutputName = $"results.{timestamp}.xml",
+            Exclude = new List<string>() { "[xunit.*]*", "[*.Specs?]*" }
+        };
+
+        var projects = GetFiles("./test/**/*.csproj");
+
+        if (projects.Count > 1)
+            coverletSettings.MergeWithFile = $"{coverletSettings.CoverletOutputDirectory.FullPath}/{coverletSettings.CoverletOutputName}";
+
+        var i = 1;
+        foreach (var project in projects)
         {   
-            DotNetCoreTest(project.FullPath, settings);
+            if (i++ == projects.Count)
+                coverletSettings.CoverletOutputFormat = CoverletOutputFormat.cobertura;
+
+            var projectName = project.GetFilenameWithoutExtension();
+            Information("Run specs for {0}", projectName);
+
+            settings.ArgumentCustomization = args => args
+                .Append("--logger").AppendQuoted($"trx;LogFileName={MakeAbsolute(parameters.Paths.Directories.TestResultOutput).FullPath}/{projectName}_{timestamp}.trx");
+
+            DotNetCoreTest(project.FullPath, settings, coverletSettings);
         }
     });
 
-Task("Pack")
-    .IsDependentOn("Test")
-    .Does(() => 
-    {    
-        DotNetCorePackSettings settings = new DotNetCorePackSettings
+Task("Coverage-Report")
+    .WithCriteria<BuildParameters>((context, parameters) => GetFiles($"{parameters.Paths.Directories.TestCoverageOutput.FullPath}/**/*.xml").Count != 0)
+    .Does<BuildParameters>((parameters) => 
+    {
+        var settings = new ReportGeneratorSettings
         {
-            NoBuild = true,
-            Configuration = configuration
+            ReportTypes = { ReportGeneratorReportType.HtmlInline }
         };
 
+        if (parameters.IsRunningOnAzurePipeline)
+            settings.ReportTypes.Add(ReportGeneratorReportType.HtmlInline_AzurePipelines);
+
+        ReportGenerator(GetFiles($"{parameters.Paths.Directories.TestCoverageOutput.FullPath}/**/*.xml"), parameters.Paths.Directories.TestCoverageOutputResults, settings);
+    });
+
+Task("Copy-Files")
+    .Does<BuildParameters>((parameters) => 
+    {
+        Information("Copy static files to artifacts"); 
+        CopyFileToDirectory("./LICENSE", parameters.Paths.Directories.Artifacts);
+
         foreach (var project in GetFiles("./src/**/*.csproj"))
-        {   
+        {
+            var settings = new DotNetCorePackSettings 
+            {
+                NoBuild = true,
+                NoRestore = true,
+                Configuration = parameters.Configuration,
+                OutputDirectory = parameters.Paths.Directories.ArtifactsOutput,
+                MSBuildSettings = parameters.MSBuildSettings
+            };
+
+            Information("Run pack for {0} to {1}", project.GetFilenameWithoutExtension(), settings.OutputDirectory); 
             DotNetCorePack(project.FullPath, settings);
         }
     });
 
+Task("Release-Notes")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnWindows,  "Release notes are generated only on Windows agents.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAzurePipeline, "Release notes are generated only on release agents.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsStableRelease(),   "Release notes are generated only for stable releases.")
+    .Does<BuildParameters>((parameters) => 
+    {
+        GetReleaseNotes(parameters.Paths.Files.ReleaseNotes);
+
+        if (string.IsNullOrEmpty(System.IO.File.ReadAllText(parameters.Paths.Files.ReleaseNotes.FullPath)))
+            System.IO.File.WriteAllText(parameters.Paths.Files.ReleaseNotes.FullPath, "No issues closed since last release");
+    });
+
 Task("Copy")
-    .IsDependentOn("Pack") 
+    .IsDependentOn("Test")
+    .IsDependentOn("Coverage-Report")
+    .IsDependentOn("Copy-Files")    
     .Does(() =>
     {
-        CopyFiles(GetFiles("./src/**/*.nupkg"), artifactDir.FullPath);
+
+    });
+
+Task("Pack")
+    .IsDependentOn("Copy")
+    .IsDependentOn("Release-Notes")
+    .Does(() =>
+    {
+
     });
 
 Task("Default")
-    .IsDependentOn("Copy")
+    .IsDependentOn("Pack")
     .Does(() =>
     {
 
@@ -107,5 +210,4 @@ Task("Default")
  * Execution
  */
 var target = Argument("target", "Default");
-var configuration = Argument("configuration", "Release");
 RunTarget(target);
