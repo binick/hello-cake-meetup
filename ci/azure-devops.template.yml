@@ -34,7 +34,7 @@ steps:
   - task: CopyFiles@2
     displayName: 'Copy Files to Artifact Staging'
     inputs:
-      SourceFolder: $(artifactsRootDir)/**/*.nupkg
+      SourceFolder: $(artifactsRootDir)
       Contents: '**\*'
       TargetFolder: $(Build.ArtifactStagingDirectory)
 
