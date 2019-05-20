@@ -26,6 +26,6 @@ jobs:
       vmImage: ubuntu-16.04
 
     steps:
-      - bash: dotnet tool install --global Cake --version 0.33.0
+      - bash: dotnet tool install --global Cake.Tool --version 0.33.0
       - template: azure-devops.template.yml
 
