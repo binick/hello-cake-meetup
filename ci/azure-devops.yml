@@ -1,4 +1,4 @@
-name: hello-cake
+name: hello-cake-meetup
 
 variables:
   artifactsRootDir: $(System.DefaultWorkingDirectory)/.artifacts
@@ -10,27 +10,32 @@ trigger:
       - preview/*
       - stable/*
 
-jobs:
 
-  - job: build_windows_agent
-    displayName: Windows Agent
-    pool:
-      vmImage: vs2017-win2016
 
-    steps:
-      - template: azure-devops.template.yml
+stages:
+- stage: windows_build    
+  jobs:
+    - job: build_windows_agent
+      displayName: Windows Agent
+      pool:
+        vmImage: vs2017-win2016
 
-  - job: build_ubuntu_agent
-    displayName: Ubuntu Agent
-    pool:
-      vmImage: ubuntu-16.04
+      steps:
+        - template: azure-devops.template.yml
 
-    steps:
-      - task: NuGetCommand@2
-        displayName: Install Cake.CoreCLR
-        inputs: 
-          command: custom
-          arguments: install Cake.CoreCLR -Version 0.33.0 -OutputDirectory ./tools
+- stage: ubuntu_build
+  jobs:
+    - job: build_ubuntu_agent
+      displayName: Ubuntu Agent
+      pool:
+        vmImage: ubuntu-16.04
 
-      - template: azure-devops.template.yml
+      steps:
+        - task: NuGetCommand@2
+          displayName: Install Cake.CoreCLR
+          inputs: 
+            command: custom
+            arguments: install Cake.CoreCLR -Version 0.33.0 -OutputDirectory ./tools
+
+        - template: azure-devops.template.yml
 
