@@ -10,27 +10,51 @@ trigger:
       - preview/*
       - stable/*
 
-
-
 stages:
-- stage: windows_build    
+- stage: windows_build
   jobs:
-    - job: build_windows_agent
+    - job: windows_build_agent
       displayName: Windows Agent
       pool:
+        name: Windows Pool
         vmImage: vs2017-win2016
-
+            
       steps:
-        - template: azure-devops.template.yml
+        # Clean and checkout
+        - checkout: self
+          clean: all
+          continueOnError: 'false'
+
+        # Build, test and generate artifact output
+        - bash: build
+          displayName: 'Build, test and generate artifact output on working directory'
+          continueOnError: 'false'
+
+        # Publish code coverage, test results and artifacts
+        - template: .publish.yml
 
 - stage: ubuntu_build
   jobs:
-    - job: build_ubuntu_agent
+    - job: ubuntu_build_agent
       displayName: Ubuntu Agent
       pool:
         vmImage: ubuntu-16.04
 
       steps:
+        # Install Cake.Tool dotnet tool
         - bash: dotnet tool install --global Cake.Tool --version 0.33.0
-          displayName: Install dotnet Cake.Tool
-        - template: azure-devops.template.yml
+          displayName: 'Install dotnet Cake.Tool on global path'
+          continueOnError: 'false'
+
+        # Clean and checkout
+        - checkout: self
+          clean: all
+          continueOnError: 'false'
+
+        # Build, test and generate artifact output
+        - bash: dotnet cake build.cake
+          displayName: 'Build, test and generate artifact output on working directory'
+          continueOnError: 'false'
+
+        # Publish code coverage, test results and artifacts
+        - template: .publish.yml

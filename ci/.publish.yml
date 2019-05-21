@@ -2,15 +2,6 @@ parameters:
   artifactsRootDir: $(System.DefaultWorkingDirectory)/.artifacts
 
 steps:
-  # Clean
-  - checkout: self
-    clean: all
-
-  # Build, test and generate artifact output
-  - powershell: ./build.ps1
-    displayName: 'Build'
-    continueOnError: 'false'
-
   # Publish test results
   - task: PublishTestResults@2
     displayName: 'Publish Test Results'

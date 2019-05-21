@@ -293,10 +293,5 @@ $cakeArguments += $ScriptArgs
 
 # Start Cake
 Write-Host "Running build script..."
-if ($IsWindows) {
-    &$CAKE_EXE $cakeArguments
-}
-else {
-    &dotnet cake build.cake
-}
+&$CAKE_EXE $cakeArguments
 exit $LASTEXITCODE
