@@ -16,7 +16,6 @@ stages:
     - job: windows_build_agent
       displayName: Windows Agent
       pool:
-        name: Windows Pool
         vmImage: vs2017-win2016
             
       steps:
