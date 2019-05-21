@@ -51,7 +51,7 @@ stages:
         # Install dotnet target version
         - bash: |
             cd ./.dotnet
-            chmod +x ./build.sh
+            chmod +x ./dotnet-install.sh
             ./dotnet-install.sh -Channel Current -Version 2.2.103
           displayName: Install target dotnet -Version
           continueOnError: 'false'
