@@ -43,13 +43,16 @@ stages:
 
       steps:
         # Download dotnet installer
-        - bash: curl -Lsfo ./.dotnet/dotnet-install.sh https://dot.net/v1/dotnet-install.sh
+        - bash: |
+            mkdir ./.dotnet
+            curl -Lsfo dotnet-install.sh https://dot.net/v1/dotnet-install.sh
           displayName: 'Download dotnet installer into ./dotnet'
 
         # Install dotnet target version
         - bash: |
-            chmod +x ./.dotnet/build.sh
-            ./.dotnet/dotnet-install.sh -Channel Current -Version 2.2.103
+            cd ./.dotnet
+            chmod +x ./build.sh
+            ./dotnet-install.sh -Channel Current -Version 2.2.103
           displayName: Install target dotnet -Version
           continueOnError: 'false'
 
