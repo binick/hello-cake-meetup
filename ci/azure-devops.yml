@@ -1,7 +1,7 @@
 name: hello-cake-meetup
 
 variables:
-  artifactsRootDir: $(System.DefaultWorkingDirectory)/.artifacts
+  artifacts_directory: $(System.DefaultWorkingDirectory)/.artifacts
 
 trigger:
   branches:
@@ -29,6 +29,8 @@ jobs:
 
       # Publish code coverage, test results and artifacts
       - template: .publish.yml
+        parameters:
+          artifacts_directory: $(artifacts_directory)
 
   - job: ubuntu_build_agent
     displayName: Ubuntu Agent
@@ -54,4 +56,5 @@ jobs:
       # Publish code coverage, test results and artifacts
       - template: .publish.yml
         parameters:
+          artifacts_directory: $(artifacts_directory)
           publish_artifacts: 'true'
