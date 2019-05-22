@@ -1,15 +1,15 @@
-// Copyright (c) React Cosulting S.r.l., 2019. All rights reserved.
+// Copyright (c) Nicola Biancolini, 2019. All rights reserved.
 // Licensed under the MIT license. See the LICENSE file in the project root for full license information.
 
 using Xunit;
 
 namespace HelloCake.Spec.Specs
 {
-    public class HelloCakeSpec
+    public class WriterSpec
     {
         private readonly Writer _writer;
 
-        public HelloCakeSpec() => this._writer = new Writer();
+        public WriterSpec() => this._writer = new Writer();
 
         [Fact(DisplayName = "given a name when print greeting message then print name")]
         [Trait("Category", "Spec")]
