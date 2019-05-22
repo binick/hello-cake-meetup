@@ -69,7 +69,7 @@ void Build(FilePath projectPath, string configuration, DotNetCoreMSBuildSettings
 
 void GetReleaseNotes(FilePath outputPath, DirectoryPath workDir = null, string repoToken = null)
 {
-    var toolPath = Context.Tools.Resolve("GitReleaseNotes.exe");
+    var toolPath = Context.Tools.Resolve(Context.IsRunningOnWindows() ? "GitReleaseNotes.exe" : "GitReleaseNotes");
 
     workDir = workDir ?? ".";
     
@@ -87,7 +87,7 @@ void GetReleaseNotes(FilePath outputPath, DirectoryPath workDir = null, string r
 
 string GetDotnetVersion()
 {
-    var toolPath = Context.Tools.Resolve("dotnet.exe");
+    var toolPath = Context.Tools.Resolve(Context.IsRunningOnWindows() ? "dotnet.exe" : "dotnet");
 
     var arguments = new ProcessArgumentBuilder()
         .Append("--version");
