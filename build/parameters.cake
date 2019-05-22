@@ -165,8 +165,8 @@ public class BuildParameters
         var buildSystem = context.BuildSystem();
         if (buildSystem.IsRunningOnAzurePipelinesHosted)
         {
-            var value = context.EnvironmentVariable("SYSTEM_PULLREQUEST_ISFORK");
-            return !string.IsNullOrWhiteSpace(value) && !string.Equals(value, false.ToString(), StringComparison.InvariantCultureIgnoreCase);
+            var value = context.EnvironmentVariable("SYSTEM_PULLREQUEST_PULLREQUESTID");
+            return !string.IsNullOrWhiteSpace(value);
         }
         return false;
     }

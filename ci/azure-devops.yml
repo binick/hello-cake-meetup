@@ -53,3 +53,5 @@ jobs:
 
       # Publish code coverage, test results and artifacts
       - template: .publish.yml
+        parameters:
+          publishArtifacts: true

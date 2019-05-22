@@ -1,5 +1,6 @@
 parameters:
   artifactsRootDir: $(System.DefaultWorkingDirectory)/.artifacts
+  publishArtifacts: false
 
 steps:
   # Publish test results
@@ -32,6 +33,7 @@ steps:
   # Publish artifacts
   - task: PublishPipelineArtifact@0
     displayName: 'Publish Build Artifact'
+    condition: $(publishArtifacts)
     inputs:
       artifactName: 'drop'
       targetPath: $(Build.ArtifactStagingDirectory)
