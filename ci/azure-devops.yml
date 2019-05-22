@@ -28,7 +28,7 @@ jobs:
         continueOnError: 'false'
 
       # Publish code coverage, test results and artifacts
-      - template: azure-devops-template/ci.publish.yml
+      - template: azure-devops-templates/ci-publish.yml
         parameters:
           artifacts_directory: $(artifacts_directory)
 
@@ -54,7 +54,7 @@ jobs:
         continueOnError: 'false'
 
       # Publish code coverage, test results and artifacts
-      - template: azure-devops-template/ci.publish.yml
+      - template: azure-devops-templates/ci-publish.yml
         parameters:
           artifacts_directory: $(artifacts_directory)
           publish_artifacts: 'true'
