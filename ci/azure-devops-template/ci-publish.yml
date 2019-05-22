@@ -8,8 +8,8 @@ steps:
   displayName: 'Publish Test Results'
   inputs:
     testRunTitle: 'Units Tests'
-    testResultsFiles: $(parameters.artifacts_directory)/**/test-results/**/*.trx
-    searchFolder: $(parameters.artifacts_directory)
+    testResultsFiles: format({0}/**/test-results/**/*.trx, {{ parameters.artifacts_directory }})
+    searchFolder: ${{ parameters.artifacts_directory }}
     testResultsFormat: VSTest
     mergeTestResults: true
 
@@ -18,15 +18,15 @@ steps:
   displayName: 'Publish Coverage Results'
   inputs:
     codeCoverageTool: Cobertura
-    summaryFileLocation: $(parameters.artifacts_directory)/**/code-coverage/results.*.xml
-    reportDirectory: $(parameters.artifacts_directory)/**/code-coverage/results
-    additionalCodeCoverageFiles: $(parameters.artifacts_directory)/**/code-coverage/results/*
+    summaryFileLocation: format({0}/**/code-coverage/results.*.xml, {{ parameters.artifacts_directory }})
+    reportDirectory: format({0}/**/code-coverage/results, {{ parameters.artifacts_directory }})
+    additionalCodeCoverageFiles: format({0}/**/code-coverage/results/*, {{ parameters.artifacts_directory }})
 
 # Copy generated artifact outputs
 - task: CopyFiles@2
   displayName: 'Copy Files to Artifact Staging'
   inputs:
-    SourceFolder: $(parameters.artifacts_directory)
+    SourceFolder: ${{ parameters.artifacts_directory }}
     Contents: '**\*'
     TargetFolder: $(Build.ArtifactStagingDirectory)
 
