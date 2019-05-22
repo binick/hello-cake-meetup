@@ -45,6 +45,7 @@ stages:
         # Download dotnet installer
         - bash: |
             mkdir .dotnet
+            cd .dotnet
             curl -Lsfo dotnet-install.sh https://dot.net/v1/dotnet-install.sh
           displayName: 'Download dotnet installer into ./dotnet'
 
