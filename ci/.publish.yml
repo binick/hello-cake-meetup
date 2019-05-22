@@ -1,39 +1,39 @@
 parameters:
-  artifactsRootDir: $(System.DefaultWorkingDirectory)/.artifacts
-  publishArtifacts: false
+  artifacts_root_dir: $(System.DefaultWorkingDirectory)/.artifacts
+  publish_artifacts: 'false'
 
 steps:
-  # Publish test results
-  - task: PublishTestResults@2
-    displayName: 'Publish Test Results'
-    inputs:
-      testRunTitle: 'Units Tests'
-      testResultsFiles: $(artifactsRootDir)/**/test-results/**/*.trx
-      searchFolder: $(artifactsRootDir)
-      testResultsFormat: VSTest
-      mergeTestResults: true
+# Publish test results
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results'
+  inputs:
+    testRunTitle: 'Units Tests'
+    testResultsFiles: $(parameters.artifacts_root_dir)/**/test-results/**/*.trx
+    searchFolder: $(parameters.artifacts_root_dir)
+    testResultsFormat: VSTest
+    mergeTestResults: true
 
-  # Publish code coverage results
-  - task: PublishCodeCoverageResults@1
-    displayName: 'Publish Coverage Results'
-    inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: $(artifactsRootDir)/**/code-coverage/results.*.xml
-      reportDirectory: $(artifactsRootDir)/**/code-coverage/results
-      additionalCodeCoverageFiles: $(artifactsRootDir)/**/code-coverage/results/*
+# Publish code coverage results
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish Coverage Results'
+  inputs:
+    codeCoverageTool: Cobertura
+    summaryFileLocation: $(parameters.artifacts_root_dir)/**/code-coverage/results.*.xml
+    reportDirectory: $(parameters.artifacts_root_dir)/**/code-coverage/results
+    additionalCodeCoverageFiles: $(parameters.artifacts_root_dir)/**/code-coverage/results/*
 
-  # Copy generated artifact outputs
-  - task: CopyFiles@2
-    displayName: 'Copy Files to Artifact Staging'
-    inputs:
-      SourceFolder: $(artifactsRootDir)
-      Contents: '**\*'
-      TargetFolder: $(Build.ArtifactStagingDirectory)
+# Copy generated artifact outputs
+- task: CopyFiles@2
+  displayName: 'Copy Files to Artifact Staging'
+  inputs:
+    SourceFolder: $(parameters.artifacts_root_dir)
+    Contents: '**\*'
+    TargetFolder: $(Build.ArtifactStagingDirectory)
 
+- ${{ if eq(parameters.publish_artifacts, 'true') }}:
   # Publish artifacts
   - task: PublishPipelineArtifact@0
     displayName: 'Publish Build Artifact'
-    condition: $(publishArtifacts)
     inputs:
       artifactName: 'drop'
       targetPath: $(Build.ArtifactStagingDirectory)
