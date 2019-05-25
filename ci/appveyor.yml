@@ -13,6 +13,3 @@ build_script:
   - cmd: build
 
 test: off
-
-artifacts:
-  - path: .artifacts/**/*.nupkg

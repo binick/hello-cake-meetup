@@ -27,11 +27,6 @@ jobs:
         displayName: 'Build, test and generate artifact output on working directory'
         continueOnError: 'false'
 
-      # Publish code coverage, test results and artifacts
-      - template: azure-devops-templates/ci-publish.yml
-        parameters:
-          artifacts_directory: $(artifacts_directory)
-
   - job: ubuntu_build_agent
     displayName: Ubuntu Agent
     pool:
@@ -52,9 +47,3 @@ jobs:
       - bash: dotnet cake build.cake
         displayName: 'Build, test and generate artifact output on working directory'
         continueOnError: 'false'
-
-      # Publish code coverage, test results and artifacts
-      - template: azure-devops-templates/ci-publish.yml
-        parameters:
-          artifacts_directory: $(artifacts_directory)
-          publish_artifacts: 'true'

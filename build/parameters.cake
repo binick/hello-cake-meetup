@@ -49,6 +49,7 @@ public class BuildParameters
 
     public bool IsLocalBuild { get; private set; }
     public bool IsRunningOnAzurePipeline { get; private set; }
+    public bool IsRunningOnAppVeyor {get; private set; }
 
     public bool IsMainRepo { get; private set; }
     public bool IsMainBranch { get; private set; }
@@ -92,6 +93,7 @@ public class BuildParameters
 
             IsLocalBuild                = buildSystem.IsLocalBuild,
             IsRunningOnAzurePipeline    = buildSystem.IsRunningOnAzurePipelinesHosted,
+            IsRunningOnAppVeyor         = buildSystem.IsRunningOnAppVeyor,
 
             IsMainRepo      = IsOnMainRepo(context),
             IsMainBranch    = IsOnMainBranch(context),
