@@ -171,15 +171,181 @@ Task("Copy-Files")
     });
 
 Task("Release-Notes")
-    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnWindows,  "Release notes are generated only on Windows agents.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnWindows, "Release notes are generated only on Windows agents.")
     .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAzurePipeline, "Release notes are generated only on release agents.")
-    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsStableRelease(),   "Release notes are generated only for stable releases.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsStableRelease(), "Release notes are generated only for stable releases.")
     .Does<BuildParameters>((parameters) => 
     {
         GetReleaseNotes(parameters.Paths.Files.ReleaseNotes);
 
         if (string.IsNullOrEmpty(System.IO.File.ReadAllText(parameters.Paths.Files.ReleaseNotes.FullPath)))
             System.IO.File.WriteAllText(parameters.Paths.Files.ReleaseNotes.FullPath, "No issues closed since last release");
+    });
+
+Task("Publish-Test-Results-AzurePipelines-UbuntuAgent")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAzurePipeline, "Test results are generated only on agents.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnLinux, "Test results for Ubuntu agent are generated only on Ubuntu agents.")    
+    .Does<BuildParameters>((parameters) => 
+    {
+        var command = new TFBuildCommands(Context.Environment, Context.Log);
+
+        var data = new TFBuildPublishTestResultsData {
+            TestResultsFiles = GetFiles($"{parameters.Paths.Directories.TestResultOutput}/**/*.trx").ToList(),
+            MergeTestResults = true,
+            Configuration = parameters.Configuration,
+            TestRunTitle = "ubuntu-agent"
+        };
+
+        command.PublishTestResults(data);
+    });
+
+Task("Publish-Test-Results-AzurePipelines-WindowsAgent")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAzurePipeline, "Test results are generated only on agents.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnWindows, "Test results for Windows agent are generated only on Windows agents.")
+    .Does<BuildParameters>((parameters) => 
+    {
+        var command = new TFBuildCommands(Context.Environment, Context.Log);
+
+        var data = new TFBuildPublishTestResultsData {
+            TestResultsFiles = GetFiles($"{parameters.Paths.Directories.TestResultOutput}/**/*.trx").ToList(),
+            MergeTestResults = true,
+            Configuration = parameters.Configuration,
+            TestRunTitle = "windows-agent"
+        };
+
+        command.PublishTestResults(data);
+    });
+
+Task("Publish-Test-Results-AzurePipelines")
+    .IsDependentOn("Publish-Test-Results-AzurePipelines-WindowsAgent") 
+    .IsDependentOn("Publish-Test-Results-AzurePipelines-UbuntuAgent") 
+    .Does(() => 
+    {
+    });
+
+Task("Publish-Test-Results-AppVeyor")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAppVeyor, "Test results are generated only on agents.")
+    .Does<BuildParameters>((parameters) => 
+    {
+        var provider = new AppVeyorProvider(Context.Environment, Context.ProcessRunner, Context.Log);
+
+        foreach(var file in GetFiles($"{parameters.Paths.Directories.TestResultOutput}/**/*.trx"))
+        {
+            provider.UploadTestResults(file, AppVeyorTestResultsType.MSTest);
+        }
+    });
+
+Task("Publish-Test-Results")
+    .IsDependentOn("Publish-Test-Results-AzurePipelines")
+    .IsDependentOn("Publish-Test-Results-AppVeyor")
+    .Does(() =>
+    {
+
+    });
+
+Task("Publish-Coverage-Results-AzurePipelines-UbuntuAgent")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAzurePipeline, "Coverage results are generated only on agents.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnLinux, "Coverage results for Ubuntu agent are generated only on Ubuntu agents.")    
+    .Does<BuildParameters>((parameters) => 
+    {
+        var command = new TFBuildCommands(Context.Environment, Context.Log);
+
+        var data = new TFBuildPublishCodeCoverageData {
+            CodeCoverageTool = TFCodeCoverageToolType.Cobertura,
+            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput}/**/*.xml"),           
+            ReportDirectory = parameters.Paths.Directories.TestCoverageOutputResults,
+            AdditionalCodeCoverageFiles = GetFiles($"{parameters.Paths.Directories.TestCoverageOutput}/**/*").ToArray()
+        };
+
+        command.PublishCodeCoverage(data);
+    });
+
+Task("Publish-Coverage-Results-AzurePipelines-WindowsAgent")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAzurePipeline, "Coverage results are generated only on agents.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnWindows, "Coverage results for Windows agent are generated only on Windows agents.")
+    .Does<BuildParameters>((parameters) => 
+    {
+        var command = new TFBuildCommands(Context.Environment, Context.Log);
+
+        var data = new TFBuildPublishCodeCoverageData {
+            CodeCoverageTool = TFCodeCoverageToolType.Cobertura,
+            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput}/**/*.xml"),           
+            ReportDirectory = parameters.Paths.Directories.TestCoverageOutputResults,
+            AdditionalCodeCoverageFiles = GetFiles($"{parameters.Paths.Directories.TestCoverageOutput}/**/*").ToArray()
+        };
+
+        command.PublishCodeCoverage(data);
+    });
+
+Task("Publish-Coverage-Results-AzurePipelines")
+    .IsDependentOn("Publish-Coverage-Results-AzurePipelines-WindowsAgent") 
+    .IsDependentOn("Publish-Coverage-Results-AzurePipelines-UbuntuAgent") 
+    .Does(() => 
+    {
+    });
+
+Task("Publish-Coverage-Results")
+    .IsDependentOn("Publish-Coverage-Results-AzurePipelines")
+    .Does(() =>
+    {
+
+    });
+
+Task("Publish-Artifacts-AzurePipelines-UbuntuAgent")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAzurePipeline, "Artifacts are published only on agents.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnLinux, "Artifacts for Ubuntu agent are published only on Ubuntu agents.")    
+    .Does<BuildParameters>((parameters) => 
+    {
+        var command = new TFBuildCommands(Context.Environment, Context.Log);
+
+        foreach(var file in GetFiles($"{parameters.Paths.Directories.ArtifactsOutput}/**/*.nupkg"))
+        {
+            command.UploadArtifact("ubuntu-agent", file);
+        }
+    });
+
+Task("Publish-Artifacts-AzurePipelines-WindowsAgent")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAzurePipeline, "Artifacts are published only on agents.")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnWindows, "Artifacts for Windows agent are published only on Windows agents.")
+    .Does<BuildParameters>((parameters) => 
+    {
+        var command = new TFBuildCommands(Context.Environment, Context.Log);
+
+        foreach(var file in GetFiles($"{parameters.Paths.Directories.ArtifactsOutput}/**/*.nupkg"))
+        {
+            command.UploadArtifact("windows-agent", file);
+        }
+    });
+
+Task("Publish-Artifacts-AzurePipelines")
+    .IsDependentOn("Publish-Artifacts-AzurePipelines-WindowsAgent") 
+    .IsDependentOn("Publish-Artifacts-AzurePipelines-UbuntuAgent") 
+    .Does(() => 
+    {
+    });
+
+Task("Publish-Artifacts-AppVeyor")
+    .WithCriteria<BuildParameters>((context, parameters) => parameters.IsRunningOnAppVeyor, "Artifacts are published only on agents.")
+    .Does<BuildParameters>((parameters) => 
+    {
+        var provider = new AppVeyorProvider(Context.Environment, Context.ProcessRunner, Context.Log);
+
+        foreach(var file in GetFiles($"{parameters.Paths.Directories.ArtifactsOutput}/**/*.nupkg"))
+        {
+            provider.UploadArtifact(file, new AppVeyorUploadArtifactsSettings 
+            { 
+                ArtifactType = AppVeyorUploadArtifactType.NuGetPackage,
+                DeploymentName = $"{file.GetFilenameWithoutExtension()}"
+            });
+        }
+    });
+
+Task("Publish-Artifacts")
+    .IsDependentOn("Publish-Artifacts-AzurePipelines")
+    .IsDependentOn("Publish-Artifacts-AppVeyor")
+    .Does(() =>
+    {
+
     });
 
 Task("Copy")
@@ -199,8 +365,18 @@ Task("Pack")
 
     });
 
-Task("Default")
+Task("Publish")
     .IsDependentOn("Pack")
+    .IsDependentOn("Publish-Test-Results")
+    .IsDependentOn("Publish-Coverage-Results")
+    .IsDependentOn("Publish-Artifacts")
+    .Does(()=> 
+    {
+
+    });
+
+Task("Default")
+    .IsDependentOn("Publish")
     .Does(() =>
     {
 
