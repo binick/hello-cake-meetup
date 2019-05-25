@@ -26,8 +26,8 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Files to Artifact Staging'
   inputs:
-    SourceFolder: ${{ parameters.artifacts_directory }}
-    Contents: '**\*'
+    SourceFolder: ${{ parameters.artifacts_directory }}/**/output
+    Contents: '**/*'
     TargetFolder: $(Build.ArtifactStagingDirectory)
 
 - ${{ if eq(parameters.publish_artifacts, 'true') }}:
