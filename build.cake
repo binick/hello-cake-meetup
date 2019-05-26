@@ -193,7 +193,8 @@ Task("Publish-Test-Results-AzurePipelines-UbuntuAgent")
             TestResultsFiles = GetFiles($"{parameters.Paths.Directories.TestResultOutput}/**/*.trx").ToList(),
             MergeTestResults = true,
             Configuration = parameters.Configuration,
-            TestRunTitle = "ubuntu-agent"
+            TestRunTitle = "ubuntu-agent",
+            TestRunner = TFTestRunnerType.VSTest
         };
 
         command.PublishTestResults(data);
@@ -210,7 +211,8 @@ Task("Publish-Test-Results-AzurePipelines-WindowsAgent")
             TestResultsFiles = GetFiles($"{parameters.Paths.Directories.TestResultOutput}/**/*.trx").ToList(),
             MergeTestResults = true,
             Configuration = parameters.Configuration,
-            TestRunTitle = "windows-agent"
+            TestRunTitle = "windows-agent",
+            TestRunner = TFTestRunnerType.VSTest
         };
 
         command.PublishTestResults(data);
@@ -252,9 +254,9 @@ Task("Publish-Coverage-Results-AzurePipelines-UbuntuAgent")
 
         var data = new TFBuildPublishCodeCoverageData {
             CodeCoverageTool = TFCodeCoverageToolType.Cobertura,
-            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput}/**/*.xml"),           
+            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput}/*.xml"),           
             ReportDirectory = parameters.Paths.Directories.TestCoverageOutputResults,
-            AdditionalCodeCoverageFiles = GetFiles($"{parameters.Paths.Directories.TestCoverageOutput}/**/*").ToArray()
+            AdditionalCodeCoverageFiles = GetFiles($"{parameters.Paths.Directories.TestCoverageOutputResults}/**/*").ToArray()
         };
 
         command.PublishCodeCoverage(data);
@@ -269,9 +271,9 @@ Task("Publish-Coverage-Results-AzurePipelines-WindowsAgent")
 
         var data = new TFBuildPublishCodeCoverageData {
             CodeCoverageTool = TFCodeCoverageToolType.Cobertura,
-            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput}/**/*.xml"),           
+            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput}/*.xml"),           
             ReportDirectory = parameters.Paths.Directories.TestCoverageOutputResults,
-            AdditionalCodeCoverageFiles = GetFiles($"{parameters.Paths.Directories.TestCoverageOutput}/**/*").ToArray()
+            AdditionalCodeCoverageFiles = GetFiles($"{parameters.Paths.Directories.TestCoverageOutputResults}/**/*").ToArray()
         };
 
         command.PublishCodeCoverage(data);
@@ -300,7 +302,7 @@ Task("Publish-Artifacts-AzurePipelines-UbuntuAgent")
 
         foreach(var file in GetFiles($"{parameters.Paths.Directories.ArtifactsOutput}/**/*.nupkg"))
         {
-            command.UploadArtifact("ubuntu-agent", file);
+            command.UploadArtifact("ubuntu-agent", file, "drop");
         }
     });
 
@@ -313,7 +315,7 @@ Task("Publish-Artifacts-AzurePipelines-WindowsAgent")
 
         foreach(var file in GetFiles($"{parameters.Paths.Directories.ArtifactsOutput}/**/*.nupkg"))
         {
-            command.UploadArtifact("windows-agent", file);
+            command.UploadArtifact("windows-agent", file, "drop");
         }
     });
 
