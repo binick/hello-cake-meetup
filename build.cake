@@ -263,7 +263,7 @@ Task("Publish-Coverage-Results-AzurePipelines-UbuntuAgent")
 
         var data = new TFBuildPublishCodeCoverageData {
             CodeCoverageTool = TFCodeCoverageToolType.Cobertura,
-            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput.FullPath}/results.*.xml"),           
+            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput.FullPath}/results.*.xml").Path.FullPath,           
             ReportDirectory = parameters.Paths.Directories.TestCoverageOutputResults,
             AdditionalCodeCoverageFiles = GetFiles($"{parameters.Paths.Directories.TestCoverageOutputResults}/**/*").ToArray()
         };
@@ -282,7 +282,7 @@ Task("Publish-Coverage-Results-AzurePipelines-WindowsAgent")
 
         var data = new TFBuildPublishCodeCoverageData {
             CodeCoverageTool = TFCodeCoverageToolType.Cobertura,
-            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput.FullPath}/results.*.xml"),           
+            SummaryFileLocation = File($"{parameters.Paths.Directories.TestCoverageOutput.FullPath}/results.*.xml").Path.FullPath,           
             ReportDirectory = parameters.Paths.Directories.TestCoverageOutputResults,
             AdditionalCodeCoverageFiles = GetFiles($"{parameters.Paths.Directories.TestCoverageOutputResults}/**/*").ToArray()
         };
