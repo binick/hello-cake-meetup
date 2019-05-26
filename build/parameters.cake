@@ -146,7 +146,7 @@ public class BuildParameters
         if(!string.IsNullOrWhiteSpace(repositoryName))
             context.Information("Repository Name: {0}", repositoryName);
 
-        return !string.IsNullOrWhiteSpace(repositoryName) && StringComparer.OrdinalIgnoreCase.Equals("reactconsulting/hello-cake", repositoryName);
+        return !string.IsNullOrWhiteSpace(repositoryName) && StringComparer.OrdinalIgnoreCase.Equals("nicolabiancolini/hello-cake-meetup", repositoryName);
     }
 
     private static bool IsOnMainBranch(ICakeContext context)
