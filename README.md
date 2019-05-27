@@ -9,5 +9,5 @@ This project is a sample use of Cake Build for automate CI / CD with various con
 ## Build Status
 |                               | __Develop__ |
 |:-----------------------------:|:-----------:|
-| __Windows__                   | [![Build Status](https://dev.azure.com/nicolabiancolini/HelloCakeMeetup/_apis/build/status/nicolabiancolini.hello-cake-meetup?branchName=master&jobName=build_windows_agent)](https://dev.azure.com/nicolabiancolini/HelloCakeMeetup/_build/latest?definitionId=6&branchName=master) |
-| __Ubuntu__                    | [![Build Status](https://dev.azure.com/nicolabiancolini/HelloCakeMeetup/_apis/build/status/nicolabiancolini.hello-cake-meetup?branchName=master&jobName=build_ubuntu_agent)](https://dev.azure.com/nicolabiancolini/HelloCakeMeetup/_build/latest?definitionId=6&branchName=master) |
+| __Windows__                   | [![Build Status](https://dev.azure.com/nicolabiancolini/HelloCakeMeetup/_apis/build/status/nicolabiancolini.hello-cake-meetup?branchName=master&jobName=Windows%20Agent)](https://dev.azure.com/nicolabiancolini/HelloCakeMeetup/_build/latest?definitionId=6&branchName=master) |
+| __Ubuntu__                    | [![Build Status](https://dev.azure.com/nicolabiancolini/HelloCakeMeetup/_apis/build/status/nicolabiancolini.hello-cake-meetup?branchName=master&jobName=Ubuntu%20Agent)](https://dev.azure.com/nicolabiancolini/HelloCakeMeetup/_build/latest?definitionId=6&branchName=master) |
