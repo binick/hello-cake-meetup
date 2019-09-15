@@ -164,6 +164,8 @@ Task("Publish")
                         SelfContained = true,
                         OutputDirectory = $"{binary}/{runtime}/{project.GetFilenameWithoutExtension()}"
                     });
+                
+                CopyFiles($"./deploy/{runtime}/{project.GetFilenameWithoutExtension()}/**/*", $"{binary}/{runtime}/{project.GetFilenameWithoutExtension()}");             
             }
     });
     
@@ -202,7 +204,6 @@ Task("Deploy-WebSite")
     .ContinueOnError()
     .Does(() =>
     {
-        CopyFile("./deploy/hello_cake.web.config", EnvironmentVariable("DEPLOYMENT_SOURCE"));
         DeployWebsite(new DeploySettings
         {
             SourcePath = EnvironmentVariable("DEPLOYMENT_SOURCE"),
