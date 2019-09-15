@@ -7,6 +7,6 @@ namespace HelloCake
         /// </summary>
         /// <param name="name">The name to be greeted.</param>
         /// <returns>Greeting message</returns>
-        public string Greeting(string name) => string.IsNullOrWhiteSpace(name) ? $"Build with Cake!" : $"Hello {name}!";
+        public string Greeting(string name) => string.IsNullOrWhiteSpace(name) ? $"Hello Cake!" : $"Hello {name}!";
     }
 }
