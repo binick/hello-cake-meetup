@@ -35,7 +35,7 @@ IEnumerable<string> runtimes = new string[] {};
 Setup(context => {
     runtimes = XmlPeek(
         "./Directory.Build.props",
-        "Project/PropertyGroup/RuntimeIdentifier").Split(';');
+        "Project/PropertyGroup/RuntimeIdentifiers").Split(';');
 });
 
 Teardown(context => {
@@ -196,7 +196,19 @@ Task("Build")
     });
 
 Task("Deploy-WebSite")
-    .IsDependentOn("Build")
+    .WithCriteria(() => 
+    {
+        string branch = string.Empty;
+
+        if (BuildSystem.IsRunningOnAzurePipelines 
+            || BuildSystem.IsRunningOnAzurePipelinesHosted)
+            branch = BuildSystem.TFBuild.Environment.Repository.SourceBranch;
+
+        if(!string.IsNullOrWhiteSpace(branch))
+            Information("Repository Branch: {0}", branch);
+
+        return branch.Replace("refs/heads/", string.Empty).Equals("master");
+    }, "Deploy run on main branch")
     .ReportError((ex) => {
         isDeployFailed = true;
         exception = ex;
@@ -215,6 +227,7 @@ Task("Deploy-WebSite")
     });
 
 Task("Deploy")
+    .IsDependentOn("Build")
     .IsDependentOn("Deploy-WebSite")
     .Does(() => 
     {
