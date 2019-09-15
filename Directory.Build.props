@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <RuntimeIdentifiers>win-x86;win-x64</RuntimeIdentifiers>
     <lang>latest</lang>
   </PropertyGroup>
 </Project>

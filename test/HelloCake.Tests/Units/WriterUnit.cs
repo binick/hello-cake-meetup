@@ -33,7 +33,7 @@ namespace HelloCake.Tests.Unit
             string greeting = this._writer.Greeting(name);
 
             // Then
-            Assert.Equal($"Build with Cake!", greeting);
+            Assert.Equal($"Hello Cake!", greeting);
         }
     }
 }
