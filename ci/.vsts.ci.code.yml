@@ -1,0 +1,61 @@
+name: hello-cake-meetup
+
+variables:
+  artifacts_directory: $(system.defaultworkingdirectory)/.artifacts
+
+trigger:
+  branches:
+    include:
+      - master
+     
+jobs:
+  - job: windows_build_agent
+    displayName: Windows Agent
+    pool:
+      vmImage: vs2017-win2016
+          
+    steps:
+      # Clean and checkout
+      - checkout: self
+        clean: all
+        continueOnError: 'false'
+
+      # Build, test, generate artifact output and deploy
+      - script: build -Target Deploy -ScriptArgs '-configuration="$(CONFIGURATION)"'
+        displayName: Build, test, generate artifact output and deploy
+        continueOnError: 'false'
+        env:
+          MICROSFT_TEAMS_WEBHOOK: $(MICROSFT_TEAMS_WEBHOOK)
+          DEPLOYMENT_SITE: $(DEPLOYMENT_SITE)
+          DEPLOYMENT_PASSWORD: $(DEPLOYMENT_PASSWORD)
+          DEPLOYMENT_URL: $(DEPLOYMENT_URL)
+          DEPLOYMENT_USERNAME: $(DEPLOYMENT_USERNAME)
+          DEPLOYMENT_SOURCE: $(artifacts_directory)/bin/win-x86/HelloCake
+
+      # Publish test results
+      - task: PublishTestResults@2
+        displayName: Publish test results
+        inputs:
+          testResultsFormat: VSTest
+          testResultsFiles: $(artifacts_directory)/test-results/*.trx
+          mergeTestResults: true
+          buildConfiguration: $(CONFIGURATION)
+ 
+      # Publish code coverage results
+      - task: PublishCodeCoverageResults@1
+        displayName: Publish code coverage results
+        inputs:
+          codeCoverageTool: Cobertura
+          summaryFileLocation: $(artifacts_directory)/test-results/coverage.*.xml
+      
+      # Copy to publish artifacts folder
+      - task: CopyFiles@2
+        displayName: Copy to publish artifacts folder
+        inputs:
+          SourceFolder: $(artifacts_directory)/output
+          TargetFolder: $(build.artifactstagingdirectory)
+      
+      # Publish build artifacts   
+      - task: PublishBuildArtifacts@1
+        displayName: Publish build artifacts
+

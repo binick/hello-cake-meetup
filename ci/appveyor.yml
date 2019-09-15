@@ -1,0 +1,14 @@
+version: '{build}'
+image: Visual Studio 2017
+
+branches:
+  only: 
+    - master
+
+skip_tags: true
+
+# Build, test and generate artifact output
+build_script:
+  - cmd: build -ScriptArgs '-configuration="Release"'
+
+test: off

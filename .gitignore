@@ -1,0 +1,17 @@
+﻿*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+[Bb]in/
+[Oo]bj/
+.vs/
+.vscode/
+
+# Cake build files and folders
+tools/**
+!tools/packages.config
+
+# Build Automation folders
+.artifacts/
+.dotnet/
