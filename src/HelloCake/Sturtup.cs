@@ -32,7 +32,7 @@ namespace HelloCake
 
             app.UseRouter(router =>
             {
-                router.MapGet("api/greeting/{name}",
+                router.MapGet("api/greeting/{name?}",
                     async (request, response, routeData) => await response
                         .WriteAsync(new WriterEndpoint()
                             .Greeting(new GreetingModel((string)request.HttpContext.GetRouteValue("name")))));
