@@ -222,7 +222,8 @@ Task("Deploy-WebSite")
             SiteName = EnvironmentVariable("DEPLOYMENT_SITE"),
             ComputerName = EnvironmentVariable("DEPLOYMENT_URL"),
             Username = EnvironmentVariable("DEPLOYMENT_USERNAME"),
-            Password = EnvironmentVariable("DEPLOYMENT_PASSWORD")
+            Password = EnvironmentVariable("DEPLOYMENT_PASSWORD"),
+            UseAppOffline = true
         });
     });
 
